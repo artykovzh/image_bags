@@ -18,8 +18,10 @@ def build_pretrained_resnet_extractor():
     model = Model(inputs=base_model.input, outputs=x)
     return model
 
-def preprocess_img(img_path, target_size=(224,224)):
-    """Load & preprocess an image for ResNet50 (ImageNet)."""
+def preprocess_img(img_path, target_size=(224, 224)):
+    """
+    Load & preprocess an image for ResNet50 (ImageNet).
+    """
     img = Image.open(img_path).convert("RGB").resize(target_size)
     arr = np.array(img)
     arr = preprocess_input(arr)
@@ -27,13 +29,15 @@ def preprocess_img(img_path, target_size=(224,224)):
 
 def generate_embeddings(data_folder, embeddings_file, paths_file):
     """
-    1) Find images in data_folder.
+    1) Find images in data_folder (recursively).
     2) Use pretrained ResNet50 to get embeddings.
     3) Save them in embeddings_file & paths_file for later use.
     """
+    # Gather all images under data_folder
     exts = ["*.jpg", "*.jpeg", "*.png", "*.JPG", "*.JPEG", "*.PNG"]
     all_paths = []
     for ext in exts:
+        # search data_folder and its subfolders
         all_paths.extend(glob.glob(os.path.join(data_folder, ext)))
         all_paths.extend(glob.glob(os.path.join(data_folder, "**", ext), recursive=True))
 
@@ -52,7 +56,12 @@ def generate_embeddings(data_folder, embeddings_file, paths_file):
             x = preprocess_img(path)
             emb = extractor.predict(x)[0]  # shape (2048,)
             embeddings_list.append(emb)
-            valid_paths.append(path)
+
+            # Store as relative path, relative to the project directory
+            # so that `app.py` can rejoin correctly later.
+            project_dir = os.path.dirname(os.path.abspath(__file__))
+            rel_path = os.path.relpath(path, start=project_dir)
+            valid_paths.append(rel_path)
         except Exception as e:
             print(f"Error with {path}: {e}")
 
@@ -61,9 +70,7 @@ def generate_embeddings(data_folder, embeddings_file, paths_file):
         return
 
     embeddings = np.array(embeddings_list, dtype='float32')
-    valid_paths = [os.path.relpath(p, start=project_dir) for p in valid_paths]
     valid_paths = np.array(valid_paths, dtype=object)
-
 
     # Save to .npy
     np.save(embeddings_file, embeddings)
@@ -73,11 +80,9 @@ def generate_embeddings(data_folder, embeddings_file, paths_file):
     print(f"Saved image paths to {paths_file}")
 
 if __name__ == "__main__":
-    import sys
-
-    # Adjust these paths as needed
+    # Paths
     project_dir = os.path.dirname(os.path.abspath(__file__))
-    data_folder = os.path.join(project_dir, "data")  # Put your images here
+    data_folder = os.path.join(project_dir, "data")  # subfolder with images
     embeddings_file = os.path.join(project_dir, "image_embeddings.npy")
     paths_file = os.path.join(project_dir, "image_paths.npy")
 

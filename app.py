@@ -30,7 +30,7 @@ def build_resnet_feature_extractor():
     model = Model(inputs=base_model.input, outputs=x)
     return model
 
-def preprocess_image_for_resnet(img, target_size=(224,224)):
+def preprocess_image_for_resnet(img, target_size=(224, 224)):
     """
     Preprocess a user-uploaded image for ResNet50.
     """
@@ -46,8 +46,7 @@ def cosine_sim_recommendations(query_embedding, embeddings, top_k=5):
     """
     # query_embedding => (1, 2048), embeddings => (N, 2048)
     sims = cosine_similarity(query_embedding, embeddings)[0]  # shape [N]
-    # Sort by similarity descending
-    top_indices = np.argsort(sims)[::-1][:top_k]
+    top_indices = np.argsort(sims)[::-1][:top_k]  # sort descending
     return [(idx, sims[idx]) for idx in top_indices]
 
 def main():
@@ -90,8 +89,18 @@ def main():
                     idx, score = results[i + col_index]
                     with cols[col_index]:
                         st.markdown(f"**Rank {i + col_index + 1}, Similarity = {score:.3f}**")
+                        # Construct the full path
                         matched_path = os.path.join(project_dir, image_paths[idx])
-                        st.image(matched_path, width=300)
+
+                        # Safety check: does the file exist?
+                        if not os.path.isfile(matched_path):
+                            st.error(f"File not found: {matched_path}")
+                        else:
+                            # Show the image from disk
+                            try:
+                                st.image(matched_path, width=300)
+                            except Exception as e:
+                                st.error(f"Could not open {matched_path}: {e}")
 
 if __name__ == "__main__":
     main()
