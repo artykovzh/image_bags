@@ -1,5 +1,5 @@
-numpy==2.2.4
-Pillow==11.1.0
-scikit_learn==1.6.1
-streamlit==1.44.0
-tensorflow==2.19.0
+numpy
+pillow
+scikit-learn
+streamlit
+tensorflow
