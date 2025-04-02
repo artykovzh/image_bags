@@ -90,7 +90,7 @@ def main():
                     idx, score = results[i + col_index]
                     with cols[col_index]:
                         st.markdown(f"**Rank {i + col_index + 1}, Similarity = {score:.3f}**")
-                        matched_path = image_paths[idx]
+                        matched_path = os.path.join(project_dir, image_paths[idx])
                         st.image(matched_path, width=300)
 
 if __name__ == "__main__":

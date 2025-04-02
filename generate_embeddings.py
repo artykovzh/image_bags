@@ -61,7 +61,9 @@ def generate_embeddings(data_folder, embeddings_file, paths_file):
         return
 
     embeddings = np.array(embeddings_list, dtype='float32')
+    valid_paths = [os.path.relpath(p, start=project_dir) for p in valid_paths]
     valid_paths = np.array(valid_paths, dtype=object)
+
 
     # Save to .npy
     np.save(embeddings_file, embeddings)
